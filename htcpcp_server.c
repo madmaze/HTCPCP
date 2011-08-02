@@ -14,11 +14,9 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <string.h>
-
 #include <stdlib.h>
 #include <sys/wait.h>
 #include <netinet/in.h>
-
 #include <signal.h>
 
 
@@ -27,10 +25,12 @@
 #define METHOD		0
 #define VAR		1
 
-struct mType
+struct HTCPCP_Req
     {
-        char ext[255];
-        char mimeType[255];
+    	int potNum;
+        int socket;
+        int reqType;
+        char opts[100][255];
     } ;
 
 
