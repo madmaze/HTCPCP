@@ -1,11 +1,11 @@
 /////////////////////////////////////////////////////////////////////////
 //
-// To compile: 			gcc -o my_httpd my_httpd.c -lnsl -lsocket
+// HTCPCP implementation
+// Hyper Text Coffee Pot Control Protocol
 //
-// To start your server:	./my_httpd 2000 .www			
-//
-// To Kill your server:		kill_my_httpd
-//
+// Aug 1st 2011
+// Matthias Lee
+// James Eastwood
 /////////////////////////////////////////////////////////////////////////
 #include <stdio.h>
 #include <sys/stat.h>
@@ -27,6 +27,8 @@
 #define DIRECTORY 	2
 #define QUEUELENGTH	10
 #define RCVBUFSIZE	256
+#define METHOD		0
+#define VAR		1
 
 struct mType
     {
@@ -112,6 +114,22 @@ char* getContType(char* ext, struct mType *mimeTypes){
 	
 	// unknown mimetype, send it binary
 	return("application/bin");
+}
+////////////////////////////////////////////////////////////////////
+// splits requests, either <var>:<val> or <method> <pot>
+////////////////////////////////////////////////////////////////////
+int splitVarVal(char* buf, char* var, char* val){
+	int varLen;
+	if( strstr( buf, ":" )!=NULL ){
+		varLen = (strlen(buf)-strlen(strstr(buf, ":" ))); 	    
+		strncpy(var,buf,varLen);
+		var[varLen]='\0';
+		val=buf+varLen;
+		printf( "var: |%s|\n", var );
+		return VAR;
+	} else {
+		return METHOD;
+	}
 }
 ////////////////////////////////////////////////////////////////////
 // Tells us if the request is a directory or a regular file
@@ -304,7 +322,7 @@ void SendDataBin(char *fileToSend, int sock, char *home, char *content, struct m
 
 }
 
-
+/*
 ////////////////////////////////////////////////////////////////////
 // Extract the file request from the request lines the client sent 
 // to us.  Make sure you NULL terminate your result.
@@ -322,7 +340,36 @@ void ExtractFileRequest(char *req, char *buff) {
 	
 	strcpy(req,result);
 	strcat(req,"\0");
-	/* TODO 4  */
+}*/
+
+void CoffeeRequestHandler( char *buff, int newsock) {
+	char *line = NULL;
+	char lineBuf[1024];
+	char varBuf[256];
+	char valBuf[256];
+	char *var = NULL;
+	int varlen=0;
+	int type;
+	const char LineDel[] = "\r\n";
+	const char VarDel[] = ": ";
+	const char SpaceDel[] = " ";
+	
+	printf("\nRequest:\n%s\n",buff);
+	fflush(stdout);
+
+	line = strtok( buff , LineDel);
+	while( line != NULL ) {
+	    printf( "extracted req: |%s|\n", line );
+	    strcpy(lineBuf,line);
+	    type = splitVarVal(lineBuf,varBuf,valBuf);
+	    if (type==METHOD){
+	    	    printf("Its a method.\n");
+	    } else if ( type==VAR ) {
+	    	    printf("Its a var.\n");
+	    }
+	    line = strtok( NULL, LineDel );
+	}
+	
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -342,6 +389,7 @@ int main(int argc, char **argv, char **environ) {
   	struct sockaddr_in server_addr, client_addr; 
 
 	char file_request[256];	/* where we store the requested file name */
+	char coffee_request[512];	// coffe request
         int one=1;		/* used to set socket options */
         struct mType mimeTypes[700];   
         readMimeFile(mimeTypes);
@@ -351,14 +399,13 @@ int main(int argc, char **argv, char **environ) {
 	 */
 	GetMyHomeDir(myhome, environ);	
 
-	if( argc != 3 ) {
-		fprintf(stderr, "USAGE: %s <port number> <content directory>\n", 
+	if( argc != 2 ) {
+		fprintf(stderr, "USAGE: %s <port number>\n", 
 								argv[0]);
 		exit(-1);
 	}
 
 	PORT = atoi(argv[1]);		/* Get the port number */
-	strcpy(content, argv[2]);	/* Get the content directory */
 
 
 	if ( (pid = fork()) < 0) {
@@ -390,10 +437,7 @@ int main(int argc, char **argv, char **environ) {
     		perror("socket");
 		exit(-1);
 	}
-	/* 
-	 * To open a UDP socket:    
-	 *	if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-	 */
+
 
   	/* 
 	 * Set up structures to bind the address to the socket. 
@@ -487,17 +531,25 @@ int main(int argc, char **argv, char **environ) {
 			 */
 			/* TODO 3 */
 			// read back return
+			/*if ((bytesRcvd = read(newsock, buff, RCVBUFSIZE - 1)) <= 0) {
+				perror("read");
+				exit(-1);
+			}*/
+			
+			// Read client request
 			if ((bytesRcvd = read(newsock, buff, RCVBUFSIZE - 1)) <= 0) {
 				perror("read");
 				exit(-1);
 			}
 			
-			ExtractFileRequest(file_request, buff);
+			CoffeeRequestHandler(buff, newsock);
+			//ExtractFileRequest(file_request, buff);
 
-			printf("** File Requested: |%s|\n", file_request);
+			//printf("** File Requested: |%s|\n", file_request);
 			fflush(stdout);
 
-			SendDataBin(file_request, newsock, myhome, content, mimeTypes);
+			
+			//SendDataBin(file_request, newsock, myhome, content, mimeTypes);
 			shutdown(newsock, 1);
 			close(newsock);
 			printf("\n");
