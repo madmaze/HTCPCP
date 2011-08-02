@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
         error("ERROR connecting");
     printf("Please enter the message: ");
     bzero(buffer,1024);
-    strcpy(buffer,"BREW /pot-1 HTCPCP/1.0\r\nHost:120.0.0.1\r\nContent-Type:message/coffeepot\r\nAccept-Additions:cream;1,sugar;3,rum;5\r\n");
+    strcpy(buffer,"BREW /pot-1 HTCPCP/1.0\r\nHost: 120.0.0.1\r\nContent-Type: message/coffeepot\r\nAccept-Additions: cream;1,sugar;3,rum;5\r\n");
    // fgets(buffer,1024,stdin);
     n = write(sockfd,buffer,strlen(buffer));
     if (n < 0) 
