@@ -100,13 +100,29 @@ void CoffeeRequestHandler( char *buff, int newsock) {
 static void *thread(void *ptr) {
 	T_vars *vars;
 	vars = (T_vars *) ptr;
-	printf("HELLO%d\n",(int)vars->T_id);
+	printf("Thread %d\n",(int)vars->T_id);
 	fflush(stdout);
+
+	char buff[1024];
+	//int read_so_far = 0;
+	int bytesRcvd;
+	//char ref[1024], rowRef[1024];
+
+	memset(buff, 0, 1024);
+
+	// Read client request
+	if ((bytesRcvd = read((int)vars->sock, buff, RCVBUFSIZE - 1)) <= 0) {
+		perror("read");
+		exit(-1);
+	}
+	
+	CoffeeRequestHandler(buff, (int)vars->sock);
+
+	
+	// stop and close socket
 	shutdown((int)vars->sock, 1);
 	close((int)vars->sock);
-	sleep(5);
-	vars->busy = FALSE;
-	
+	vars->busy = FALSE;	
 }
 
 ////////////////////////////////////////////////////////////////////
