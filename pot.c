@@ -103,13 +103,12 @@ void calcAddVal(char * add, int time) {
 	char * ratio;
 	char temp[255];
 	int result;
-
 	type=strtok(add,";");
 	ratio=strtok(NULL,"");
-
+	if(ratio==NULL)
+		return;
 	result=atoi(ratio);
 	result *= time;
-
 	sprintf(temp, "%d units of %s",result,type);
 	strcpy(add, temp);
 }
@@ -151,16 +150,21 @@ int getState(potStruct * pot) {
 
 int validateAdds(char additions[][255]) {
 	char * tok;
+	char tmp[255];
 	int i;
 
 	for(i=0; i < 20; i++) {
+		strcpy(tmp,additions[i]);
 		tok=strtok(additions[i], ";");
 		if(tok == NULL) {
+			strcpy(additions[i],tmp);
 			return(TRUE);
 		}
 		if(mystristr(validAdditions,tok) == NULL) {
+			strcpy(additions[i],tmp);
 			return(FALSE);
 		}
+		strcpy(additions[i],tmp);
 	}
 
 
@@ -168,15 +172,20 @@ int validateAdds(char additions[][255]) {
 
 int calcAddPerSec(char additions[][255]) {
 	char * tok;
+	char tmp[255];
 	int i;
 	int count=0;
-
+	
 	for(i=0; i < 20; i++) {
-		tok=strtok(additions[i], ";");
-		tok=strtok(NULL,"");
+		printf("calcAddPerSec %s\n",additions[i]);
+		strcpy(tmp,additions[i]);
+		tok=strstr(additions[i],";")+1;
 		if(tok == NULL)
+			strcpy(additions[i],tmp);
 			return(count);
 		count+=atoi(tok);
+		strcpy(additions[i],tmp);
+		
 	}
 	return(count);
 
@@ -199,12 +208,12 @@ void brew(potStruct * pot, char additions[][255], char * buf) {
 	strcpy(buf, C_BREW_SUC);
 	resetPot(pot);
 
-	pot->finBrew=time(NULL)+30;
+	pot->finBrew=time(NULL)+15;
 
 	for(i=0; i < 20; i++) {
 		strcpy(pot->waitingAdditions[i],additions[i]);
 	}
-
+	
 	pot->addUnitsPerSec=calcAddPerSec(pot->waitingAdditions);
 
 	pot->cupWaiting=TRUE;
@@ -303,7 +312,6 @@ void get(potStruct * pot, char * buf) {
 	char message[1000];
 	int i;
 	char sizeStr[124];
-
 	if(potStatus == READY) {
 		strcpy(buf, C_NO_CUP);
 		return;
@@ -341,10 +349,11 @@ void get(potStruct * pot, char * buf) {
 			strcat(message, ", ");
 		}
 		strcat(buf, C_OK);
-		sprintf(sizeStr,"Content-length:$d\r\n",strlen(message));
+		sprintf(sizeStr,"Content-length:%d\r\n",(int)strlen(message));
 		strcat(buf,sizeStr);
 		strcat(buf,"Content-type: beverage/coffee \r\n\r\n");
 		strcat(buf,message);
+		resetPot(pot);
 		return;
 	}
 
@@ -368,7 +377,7 @@ void get(potStruct * pot, char * buf) {
 }
 
 
-int main() {
+int main1() {
 
 	potStruct pot;
 

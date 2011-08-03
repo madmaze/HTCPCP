@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
     	    strcpy(buffer,"WHEN /pot-2 HTCPCP/1.0 \r\n");
     	    printf("%s\n",buffer);
     } else if(cmd==5){
-    	    strcpy(buffer,"PROPFIND /pot-4 HTCPCP/1.0 \r\n");
+    	    strcpy(buffer,"GET /pot-4 HTCPCP/1.0 \r\n");
     	    printf("%s\n",buffer);
     } else if(cmd==6){
     	    strcpy(buffer,"PROPFIND /pot-4 HTCPCP/1.0 \r\n");

@@ -179,8 +179,8 @@ static void *thread(void *ptr) {
 	for(x=0;x<addCnt;x++){
 		printf("add %s\n",Adds[x]);
 	}
-	printf("METHOD is |%s|\n",method);
-	printf("POT num is |%d|\n",potNum);
+	printf("METHOD is %s\n",method);
+	printf("POT num is %d\n",potNum);
 	} else {
 		printf("Parsing error!\n");
 	}
@@ -190,9 +190,9 @@ static void *thread(void *ptr) {
 		brew(&vars->pot[potNum], Adds, lineBuf);
 	} else if( strcmp(method,"PUT") == 0) {
 		put(&vars->pot[potNum], lineBuf);
-	} /*else if( strcmp(method,"GET") == 0) {
+	} else if( strcmp(method,"GET") == 0) {
 		get(&vars->pot[potNum], lineBuf);
-	}*/ else if( strcmp(method,"WHEN") == 0) {
+	} else if( strcmp(method,"WHEN") == 0) {
 		when(&vars->pot[potNum], lineBuf);
 	} /*else if( strcmp(method,"PROPFIND") == 0) {
 		propfind(&vars->pot[potNum], lineBuf);
