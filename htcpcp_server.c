@@ -168,11 +168,9 @@ static void *thread(void *ptr) {
 	line = strtok( tmpAdd , del);
 	while( line != NULL ) {
 		 //printf( "extracted add: |%s|\n", line );
-		 //strip(line,255);
 		 strcpy(lineBuf,strip(line));
 		 type = splitVarVal(lineBuf,varBuf,valBuf,';');
 		 sprintf(Adds[addCnt],"%s;%s",varBuf,valBuf);
-		 //strcpy((vars->pot[potNum]).waitingAdditions[addCnt],"test");
 		 line = strtok( NULL, del );
 		 addCnt++;
 	}
@@ -227,7 +225,6 @@ int main(int argc, char **argv, char **environ) {
 
 	for(i=0; i<POTCNT; i++){
 		resetPot(&Pots[i]);
-		//Pots[i].cupWaiting=i*10;
 	}
 
 	if( argc != 2 ) {
