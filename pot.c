@@ -2,6 +2,7 @@
 #include <string.h>
 
 //for testing
+#include <stdio.h>
 
 
 #define BUFFSIZE 4096
@@ -27,7 +28,7 @@ typedef struct {
 	int additionsAdded;
 	int addUnitsPerSec;
 	time_t startPour;
-	char waitingAdditions[255];
+	char waitingAdditions[20][255];
 } potStruct;
 
 
@@ -47,15 +48,15 @@ int getState(potStruct * pot) {
 	if(pot->cupWaiting == FALSE) {
 		return(READY);
 	}
-	else if(pot->finBrew < curTime) {
+	else if(pot->finBrew > curTime) {
 		return(BREWING);
 	}
-	else if(pot->finBrew >= curTime) {
-		if(difftime(pot->finBrew, curTime) >= SECS_TO_COLD) {
+	else if(pot->finBrew <= curTime) {
+		if(difftime(curTime, pot->finBrew) >= SECS_TO_COLD) {
 			return(CUP_COLD);
 		}
 		else if (pot->startPour >= curTime) {
-			if((((int)difftime(pot->startPour, curTime))*FREE_UNITS_FOR_ADDS) > 100) {
+			if((((int)difftime(pot->startPour, curTime))*pot->addUnitsPerSec) > FREE_UNITS_FOR_ADDS) {
 				return(CUP_OVERFLOW);
 			}
 			else if (pot->additionsAdded == TRUE) {
@@ -82,10 +83,14 @@ int main() {
 
 	int result;
 
+
 	resetPot(&pot);
 
+	pot.cupWaiting=TRUE;
+	pot.finBrew=time(NULL)-5;
+	pot.addUnitsPerSec=10;
 	result=getState(&pot);
 
-	printf("Result: %d\n" result);
+	printf("Result: %d\n", result);
 
 }
