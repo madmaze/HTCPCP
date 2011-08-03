@@ -331,7 +331,7 @@ void get(potStruct * pot, char * buf) {
 	if(potStatus == CUP_WAITING_ADDS) {
 		if(pot->addsCalced == FALSE) {
 			for(i=0; i < 20; i++) {
-				if(pot->waitingAdditions[i] == ""){
+				if(strcmp(pot->waitingAdditions[i], "") == 0){
 				       break;
 				}
 		 		calcAddVal(pot->waitingAdditions[i], pot->timePoured);		
@@ -341,7 +341,7 @@ void get(potStruct * pot, char * buf) {
 		strcpy(message, CUP);
 		strcat(message, "Coffee with ");
 		for(i=0; i < 20; i++) {
-			if(pot->waitingAdditions[i] == "") {
+			if(strcmp(pot->waitingAdditions[i], "")== 0) {
 				strcat(message, ".");
 				break;
 			}
