@@ -139,11 +139,12 @@ static void *thread(void *ptr) {
 	int type;
 	char *line=NULL;
 	char tmpAdd[1024];
-	char lineBuf[1024];
+	char lineBuf[2048];
 	char varBuf[255];
 	char valBuf[255];
 	const char del[] = ",";
 	potNum=1;
+	char Adds[20][255];
 	
 	printf("Thread %d\n",(int)vars->T_id);
 	fflush(stdout);
@@ -169,18 +170,35 @@ static void *thread(void *ptr) {
 		 //strip(line,255);
 		 strcpy(lineBuf,strip(line));
 		 type = splitVarVal(lineBuf,varBuf,valBuf,';');
-		 sprintf((vars->pot[potNum]).waitingAdditions[addCnt],"%s;%s",varBuf,valBuf);
+		 sprintf(Adds[addCnt],"%s;%s",varBuf,valBuf);
 		 //strcpy((vars->pot[potNum]).waitingAdditions[addCnt],"test");
 		 line = strtok( NULL, del );
 		 addCnt++;
 	}
 	for(x=0;x<addCnt;x++){
-		printf("add %s\n",(vars->pot[potNum]).waitingAdditions[x]);
+		printf("add %s\n",Adds[x]);
 	}
 	printf("METHOD is |%s|\n",method);
 	printf("POT num is |%d|\n",potNum);
 	
 	// LOGIC HERE
+	
+	if( strcmp(method,"BREW") ==0 ){
+		brew(&vars->pot[potNum], Adds, lineBuf);
+	} else if( strcmp(method,"PUT") == 0) {
+		put(&vars->pot[potNum], lineBuf);
+	} /*else if( strcmp(method,"GET") == 0) {
+		get(&vars->pot[potNum], lineBuf);
+	} else if( strcmp(method,"WHEN") == 0) {
+		when(&vars->pot[potNum], lineBuf);
+	} else if( strcmp(method,"PROPFIND") == 0) {
+		propfind(&vars->pot[potNum], lineBuf);
+	}*/
+	
+	if (write((int)vars->sock, lineBuf, strlen((char*)lineBuf)) <= 0) {
+		perror("write");
+		exit(-1);
+	}
 	
 	// stop and close socket
 	shutdown((int)vars->sock, 1);
@@ -205,7 +223,7 @@ int main(int argc, char **argv, char **environ) {
 	
 	for(i=0; i<POTCNT; i++){
 		resetPot(&Pots[i]);
-		Pots[i].cupWaiting=i*10;
+		//Pots[i].cupWaiting=i*10;
 	}
 
 	if( argc != 2 ) {
