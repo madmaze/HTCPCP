@@ -34,12 +34,17 @@ typedef struct {
 
 //constructor for our pot struct.
 void resetPot(potStruct * pot) {
+	int i;
+
 	pot->finBrew=0;
 	pot->cupWaiting=FALSE;
 	pot->additionsAdded=FALSE;
 	pot->addUnitsPerSec=0;
 	pot->startPour=0;
-	strcpy(pot->waitingAdditions, "");
+
+	for(i=0;i < 20; i++) {
+		strcpy(pot->waitingAdditions[i], "");
+	}
 }
 
 int getState(potStruct * pot) {
@@ -87,8 +92,9 @@ int main() {
 	resetPot(&pot);
 
 	pot.cupWaiting=TRUE;
-	pot.finBrew=time(NULL)-5;
-	pot.addUnitsPerSec=10;
+	pot.finBrew=time(NULL)-50;
+	pot.addUnitsPerSec=45;
+	pot.startPour=time(NULL);
 	result=getState(&pot);
 
 	printf("Result: %d\n", result);
