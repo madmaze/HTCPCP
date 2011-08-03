@@ -18,12 +18,16 @@
 #include <sys/wait.h>
 #include <netinet/in.h>
 #include <signal.h>
-
+#include <time.h>
+#include <pot.c>
 
 #define QUEUELENGTH	10
 #define RCVBUFSIZE	256
 #define METHOD		0
 #define VAR		1
+#define TRUE 		1
+#define FALSE		0
+
 
 struct HTCPCP_Req
     {
