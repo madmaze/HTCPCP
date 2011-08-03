@@ -94,7 +94,7 @@ char* strip(char* str){
 	return str;
 }
 
-void CoffeeRequestHandler( char *buff, int *potNum, char *method, char additions[1024]) {
+int CoffeeRequestHandler( char *buff, int *potNum, char *method, char additions[1024]) {
 	char *line = NULL;
 	char lineBuf[1024];
 	char varBuf[255];
@@ -107,23 +107,29 @@ void CoffeeRequestHandler( char *buff, int *potNum, char *method, char additions
 	fflush(stdout);
 
 	line = strtok( buff , LineDel);
+	if(line == NULL)
+		return -1;
 	while( line != NULL ) {
-	    printf( "extracted req: |%s|\n", strip(line) );
+	    //printf( "extracted req: |%s|\n", strip(line) );
 	    strcpy(lineBuf,line);
 	    type = splitVarVal(lineBuf,varBuf,valBuf,':');
 	    if (type == METHOD){
-	    	    printf("Its a method. %s=%s\n",varBuf,valBuf);
+	    	    //printf("Its a method. %s=%s\n",varBuf,valBuf);
 	    	    strcpy(method,strip(varBuf));
 	    	    *potNum=atoi(strstr(valBuf,"-")+1);
 	    } else if ( type == VAR ) {
 	    	    memset(tmpBuf, 0, 255);
-	    	    printf("Its a var. %s=%s\n",varBuf,valBuf);
+	    	    //printf("Its a var. %s=%s\n",varBuf,valBuf);
 	    	    if(strcmp(varBuf, "Accept-Additions")==0){
 	    	    	    strcpy(additions,strip(valBuf));
 	    	    }
 	    }
 	    line = strtok( NULL, LineDel );
 	}
+	if(strlen(varBuf)<1 || strlen(valBuf)<1)
+		return -1;
+	else
+		return 0;
 }
 
 static void *thread(void *ptr) {
@@ -157,11 +163,11 @@ static void *thread(void *ptr) {
 		exit(-1);
 	}
 
-	CoffeeRequestHandler(buff, &potNum, method, tmpAdd);
+	if(CoffeeRequestHandler(buff, &potNum, method, tmpAdd)>=0){
 	
 	line = strtok( tmpAdd , del);
 	while( line != NULL ) {
-		 printf( "extracted req: |%s|\n", line );
+		 printf( "extracted add: |%s|\n", line );
 		 //strip(line,255);
 		 strcpy(lineBuf,strip(line));
 		 type = splitVarVal(lineBuf,varBuf,valBuf,';');
@@ -175,7 +181,9 @@ static void *thread(void *ptr) {
 	}
 	printf("METHOD is |%s|\n",method);
 	printf("POT num is |%d|\n",potNum);
-	
+	} else {
+		printf("Parsing error!\n");
+	}
 	// LOGIC HERE
 	
 	if( strcmp(method,"BREW") ==0 ){
@@ -189,6 +197,9 @@ static void *thread(void *ptr) {
 	} /*else if( strcmp(method,"PROPFIND") == 0) {
 		propfind(&vars->pot[potNum], lineBuf);
 	}*/
+	else{
+		strcpy(lineBuf,"HTCPCP/1.0 418 I'm a teapot\r\n");
+	}
 	
 	if (write((int)vars->sock, lineBuf, strlen((char*)lineBuf)) <= 0) {
 		perror("write");
