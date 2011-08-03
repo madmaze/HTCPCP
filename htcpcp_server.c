@@ -29,10 +29,6 @@
 #define TRUE 		1
 #define FALSE		0
 
-=======
-#define TRUE		1
-#define FALSE		0
-
 #define POTCNT 5
 
 typedef struct {
