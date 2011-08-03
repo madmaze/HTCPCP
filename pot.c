@@ -35,7 +35,7 @@
 #define C_NOT_POURING "HTCPCP/1.0 421 Not pouring \r\n"
 #define C_STILL_POURING "HTCPCP/1.0 422 Still pouring \r\n"
 
-#define CUP "                                (          (           (           (\n                                      )        )          )          )\n                               _(____(_____(_____(___\n                                l                                 l\n                                l                                 l\n____\n                                l                                 ___   l\n                                l                                 l     l   l\n                                l                                 l     l   l\n                                l                                 l__l   l\n                                l                                  ____l\n                                 \\__________________/\r\n"
+#define CUP "                                (    (   (      (\n                                  )    )      )    )\n                                (____(_____(_____(___\n                                l                   l\n                                l                   l____\n                                l                 ___   l\n                                l                l   l   l\n                                l                l   l   l\n                                l                 l__l   l\n                                l                    ____l\n                                \\__________________/\n" 
 
 
 char validAdditions[] = "CREAM;HALF-AND-HALF;WHOLE-MILK;PART-SKIM;SKIM;NON-DAIRY;VANILLA;ALMOND;RASPBERRY;CHOCOLATE;WHISKY;RUM;KAHLUA;AQUAVIT";
