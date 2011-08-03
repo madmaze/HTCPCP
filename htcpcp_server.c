@@ -183,20 +183,20 @@ static void *thread(void *ptr) {
 		printf("Parsing error!\n");
 	}
 	// LOGIC HERE
-	
-	if( strcmp(method,"BREW") ==0 ){
-		brew(&vars->pot[potNum], Adds, lineBuf);
-	} else if( strcmp(method,"PUT") == 0) {
-		put(&vars->pot[potNum], lineBuf);
-	} else if( strcmp(method,"GET") == 0) {
-		get(&vars->pot[potNum], lineBuf);
-	} else if( strcmp(method,"WHEN") == 0) {
-		when(&vars->pot[potNum], lineBuf);
-	} /*else if( strcmp(method,"PROPFIND") == 0) {
-		propfind(&vars->pot[potNum], lineBuf);
-	}*/
-	else{
+	if (potNum>=POTCNT) {
 		strcpy(lineBuf,"HTCPCP/1.0 418 I'm a teapot\r\n");
+	} else {
+		if( strcmp(method,"BREW") ==0 ){
+			brew(&vars->pot[potNum], Adds, lineBuf);
+		} else if( strcmp(method,"PUT") == 0) {
+			put(&vars->pot[potNum], lineBuf);
+		} else if( strcmp(method,"GET") == 0) {
+			get(&vars->pot[potNum], lineBuf);
+		} else if( strcmp(method,"WHEN") == 0) {
+			when(&vars->pot[potNum], lineBuf);
+		} else{
+			strcpy(lineBuf,"HTCPCP/1.0 418 I'm a teapot\r\n");
+		}
 	}
 	
 	if (write((int)vars->sock, lineBuf, strlen((char*)lineBuf)) <= 0) {
