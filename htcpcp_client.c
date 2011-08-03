@@ -15,17 +15,18 @@ void error(const char *msg)
 
 int main(int argc, char *argv[])
 {
-    int sockfd, portno, n, cmd;
+    int sockfd, portno, n, cmd, pot;
     struct sockaddr_in serv_addr;
     struct hostent *server;
 
     char buffer[1024];
-    if (argc < 4) {
-       fprintf(stderr,"usage %s hostname port\n", argv[0]);
+    if (argc < 5) {
+       fprintf(stderr,"usage %s hostname port cmd pot\n", argv[0]);
        exit(0);
     }
     portno = atoi(argv[2]);
     cmd = atoi(argv[3]);
+    pot = atoi(argv[4]);
     printf("Choice %d\n",cmd);
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) 
@@ -48,31 +49,19 @@ int main(int argc, char *argv[])
     
     
     if(cmd==0){
-    	    strcpy(buffer,"BREW /pot-4 HTCPCP/1.0\r\nHost: 120.0.0.1\r\nContent-Type: message/coffeepot\r\nAccept-Additions: cream;1,whisky;3,rum;5\r\n");
+    	    sprintf(buffer,"BREW /pot-%d HTCPCP/1.0\r\nHost: 120.0.0.1\r\nContent-Type: message/coffeepot\r\nAccept-Additions: cream;1,whisky;3,rum;5\r\n",pot);
     	    printf("%s\n",buffer);
     } else if(cmd==1){
-    	    strcpy(buffer,"PUT /pot-4 HTCPCP/1.0 \r\n");
+    	    sprintf(buffer,"PUT /pot-%d HTCPCP/1.0 \r\n",pot);
     	    printf("%s\n",buffer);
     } else if(cmd==2){
-    	    strcpy(buffer,"BREW /pot-2 HTCPCP/1.0\r\nHost: 120.0.0.1\r\nContent-Type: message/coffeepot\r\nAccept-Additions: cream;1,whisky;3,rum;5\r\n");
+    	    sprintf(buffer,"WHEN /pot-%d HTCPCP/1.0\r\n",pot);
     	    printf("%s\n",buffer);
     } else if(cmd==3){
-    	    strcpy(buffer,"WHEN /pot-4 HTCPCP/1.0 \r\n");
+    	    sprintf(buffer,"GET /pot-%d HTCPCP/1.0 \r\n",pot);
     	    printf("%s\n",buffer);
     } else if(cmd==4){
-    	    strcpy(buffer,"WHEN /pot-2 HTCPCP/1.0 \r\n");
-    	    printf("%s\n",buffer);
-    } else if(cmd==5){
-    	    strcpy(buffer,"GET /pot-4 HTCPCP/1.0 \r\n");
-    	    printf("%s\n",buffer);
-    } else if(cmd==6){
-    	    strcpy(buffer,"PROPFIND /pot-4 HTCPCP/1.0 \r\n");
-    	    printf("%s\n",buffer);
-    } else if(cmd==9){
-    	    strcpy(buffer,"PROPFIND /pot-4 HTCPCP/1.0 \r\n");
-    	    printf("%s\n",buffer);
-    } else if(cmd==8){
-    	    strcpy(buffer,"PROPFIND /pot-4 HTCPCP/1.0 \r\n");
+    	    sprintf(buffer,"PROPFIND /pot-%d HTCPCP/1.0 \r\n",pot);
     	    printf("%s\n",buffer);
     }
     

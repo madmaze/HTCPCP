@@ -177,7 +177,6 @@ int calcAddPerSec(char additions[][255]) {
 	int count=0;
 	
 	for(i=0; i < 20; i++) {
-		printf("calcAddPerSec %s\n",additions[i]);
 		strcpy(tmp,additions[i]);
 		tok=strstr(additions[i],";")+1;
 		if(tok == NULL)

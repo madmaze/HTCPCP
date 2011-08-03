@@ -167,7 +167,7 @@ static void *thread(void *ptr) {
 	
 	line = strtok( tmpAdd , del);
 	while( line != NULL ) {
-		 printf( "extracted add: |%s|\n", line );
+		 //printf( "extracted add: |%s|\n", line );
 		 //strip(line,255);
 		 strcpy(lineBuf,strip(line));
 		 type = splitVarVal(lineBuf,varBuf,valBuf,';');
