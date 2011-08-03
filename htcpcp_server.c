@@ -3,7 +3,7 @@
 // HTCPCP implementation
 // Hyper Text Coffee Pot Control Protocol
 //
-// Aug 1st 2011
+// Copyleft/Copyright (c)2011
 // Matthias Lee
 // James Eastwood
 /////////////////////////////////////////////////////////////////////////
@@ -100,20 +100,15 @@ void CoffeeRequestHandler( char *buff, int *potNum, char *method, char additions
 	char varBuf[255];
 	char valBuf[255];
 	char tmpBuf[255];
-	char *var = NULL;
-	int varlen=0;
-	int cnt=0;
 	int type;
 	const char LineDel[] = "\r\n";
-	const char VarDel[] = ": ";
-	const char SpaceDel[] = " ";
 	
 	printf("\nRequest:\n%s\n",buff);
 	fflush(stdout);
 
 	line = strtok( buff , LineDel);
 	while( line != NULL ) {
-	    printf( "extracted req: |%s|\n", line );
+	    printf( "extracted req: |%s|\n", strip(line) );
 	    strcpy(lineBuf,line);
 	    type = splitVarVal(lineBuf,varBuf,valBuf,':');
 	    if (type == METHOD){
@@ -189,9 +184,9 @@ static void *thread(void *ptr) {
 		put(&vars->pot[potNum], lineBuf);
 	} /*else if( strcmp(method,"GET") == 0) {
 		get(&vars->pot[potNum], lineBuf);
-	} else if( strcmp(method,"WHEN") == 0) {
+	}*/ else if( strcmp(method,"WHEN") == 0) {
 		when(&vars->pot[potNum], lineBuf);
-	} else if( strcmp(method,"PROPFIND") == 0) {
+	} /*else if( strcmp(method,"PROPFIND") == 0) {
 		propfind(&vars->pot[potNum], lineBuf);
 	}*/
 	
@@ -219,8 +214,6 @@ int main(int argc, char **argv, char **environ) {
 	// structs to hold addrs
   	struct sockaddr_in server_addr, client_addr; 
 
-	char coffee_request[512];	// coffe request
-	
 	for(i=0; i<POTCNT; i++){
 		resetPot(&Pots[i]);
 		//Pots[i].cupWaiting=i*10;
@@ -271,10 +264,8 @@ int main(int argc, char **argv, char **environ) {
     		perror("listen");
 		exit(-1);
 	}
-	int client_len = sizeof(client_addr);		
-	int clientaddrlength;
+	unsigned int clientaddrlength;
 	clientaddrlength = sizeof(client_addr);
-
 
 	// while not killed accept sockets
   	while (1) {
@@ -308,41 +299,5 @@ int main(int argc, char **argv, char **environ) {
 			}
 			printf("Created thread %d\n",curThread);
 		}
-		//curThread++;
-/*
-		if ( (pid = fork()) < 0) {
-			perror("Cannot fork");
-			exit(0);
-  		}
-		else if( pid == 0 ) {
-			// spawn child process
-			int r;
-      			char buff[1024];
-			int read_so_far = 0;
-			int bytesRcvd;
-			char ref[1024], rowRef[1024];
-
-			close(sockid);
-
-			memset(buff, 0, 1024);
-
-			// Read client request
-			if ((bytesRcvd = read(newsock, buff, RCVBUFSIZE - 1)) <= 0) {
-				perror("read");
-				exit(-1);
-			}
-			
-			CoffeeRequestHandler(buff, newsock);
-
-			
-			// stop and close socket
-			shutdown(newsock, 1);
-			close(newsock);
-			printf("\n");
-			exit(0);
-    		}
-    		*/
-		// parent, dont care about this socket
-		//close(newsock);	
   	}
 }
