@@ -18,20 +18,36 @@
 #include <sys/wait.h>
 #include <netinet/in.h>
 #include <signal.h>
+#include "pot.c"
 
 
 #define QUEUELENGTH	10
 #define RCVBUFSIZE	256
 #define METHOD		0
 #define VAR		1
+#define TRUE		1
+#define FALSE		0
 
-struct HTCPCP_Req
+#define POTCNT 5
+/*
+struct T_vars
     {
     	int potNum;
         int socket;
         int reqType;
         char opts[100][255];
     } ;
+    */
+typedef struct {
+	pthread_t tid;
+	int T_id;
+	int sock;
+	int busy;
+	potStruct *Arr;
+} T_vars;
+
+T_vars threadVars[POTCNT+1];
+
 
 
 ////////////////////////////////////////////////////////////////////
@@ -89,19 +105,27 @@ void CoffeeRequestHandler( char *buff, int newsock) {
 	
 }
 
+static void *thread(void *ptr) {
+	T_vars *vars;
+	vars = (T_vars *) ptr;
+	printf("HELLO%d\n",(int)vars->T_id);
+	fflush(stdout);
+	shutdown((int)vars->sock, 1);
+	close((int)vars->sock);
+}
+
 ////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////
 int main(int argc, char **argv, char **environ) {
   	pid_t pid;
 	int sockid;
 	int PORT;
+	int curThread;
 
 	// structs to hold addrs
   	struct sockaddr_in server_addr, client_addr; 
 
 	char coffee_request[512];	// coffe request
-
-        struct mType mimeTypes[700];   
 
 	if( argc != 2 ) {
 		fprintf(stderr, "USAGE: %s <port number>\n", argv[0]);
@@ -151,21 +175,29 @@ int main(int argc, char **argv, char **environ) {
 
 
 	// while not killed accept sockets
-  	while (1) {
+  	while (curThread<6) {
 
-		int newsock;		
+		//int newsock;		
 		int client_len = sizeof(client_addr);
 		
 		
 		int clientaddrlength;
 		clientaddrlength = sizeof(client_addr);
-		newsock = accept(sockid, (struct server_addr *) &client_addr, &clientaddrlength);
+		threadVars[curThread].sock = accept(sockid, (struct server_addr *) &client_addr, &clientaddrlength);
 
-    		if (newsock < 0) {
+    		if (threadVars[curThread].sock < 0) {
 			perror("accept");
 			exit(-1);
 		}
-
+		
+		threadVars[curThread].T_id=curThread;
+		if( pthread_create(&threadVars[curThread].tid, NULL, &thread, (void *) &threadVars[curThread]) !=0 ) {
+			perror("pthread_create");
+			exit(-2);
+		}
+		printf("Created thread %d\n",curThread);
+		curThread++;
+/*
 		if ( (pid = fork()) < 0) {
 			perror("Cannot fork");
 			exit(0);
@@ -197,7 +229,8 @@ int main(int argc, char **argv, char **environ) {
 			printf("\n");
 			exit(0);
     		}
+    		*/
 		// parent, dont care about this socket
-		close(newsock);	
+		//close(newsock);	
   	}
 }
