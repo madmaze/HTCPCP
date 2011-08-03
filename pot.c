@@ -33,6 +33,10 @@
 #define C_POURING "HTCPCP/1.0 200 OK \r\nContent-type: message/coffeepot \r\n\r\nSay WHEN \r\n"
 #define C_OK "HTCPCP/1.0 200 OK \r\n "
 #define C_NOT_POURING "HTCPCP/1.0 421 Not pouring \r\n"
+#define C_STILL_POURING "HTCPCP/1.0 422 Still pouring \r\n"
+
+#define CUP "                                (          (           (           (\n                                      )        )          )          )\n                               _(____(_____(_____(___\n                                l                                 l\n                                l                                 l\n____\n                                l                                 ___   l\n                                l                                 l     l   l\n                                l                                 l     l   l\n                                l                                 l__l   l\n                                l                                  ____l\n                                 \\__________________/\r\n"
+
 
 char validAdditions[] = "CREAM;HALF-AND-HALF;WHOLE-MILK;PART-SKIM;SKIM;NON-DAIRY;VANILLA;ALMOND;RASPBERRY;CHOCOLATE;WHISKY;RUM;KAHLUA;AQUAVIT";
 
@@ -44,6 +48,7 @@ typedef struct {
 	time_t startPour;
 	int timePoured;
 	char waitingAdditions[20][255];
+	int addsCalced;
 } potStruct;
 
 const char *mystristr(const char *haystack, const char *needle)
@@ -86,10 +91,27 @@ void resetPot(potStruct * pot) {
 	pot->addUnitsPerSec=0;
 	pot->startPour=0;
 	pot->timePoured=0;
+	pot->addsCalced=FALSE;
 
 	for(i=0;i < 20; i++) {
 		strcpy(pot->waitingAdditions[i], "");
 	}
+}
+
+void calcAddVal(char * add, int time) {
+	char * type;
+	char * ratio;
+	char temp[255];
+	int result;
+
+	type=strtok(add,";");
+	ratio=strtok(NULL,"");
+
+	result=atoi(ratio);
+	result *= time;
+
+	sprintf(temp, "%d units of %s",result,type);
+	strcpy(add, temp);
 }
 
 int getState(potStruct * pot) {
@@ -232,7 +254,7 @@ void put(potStruct * pot, char * buf) {
 }
 
 void when(potStruct * pot, char * buf) {
-	in potStatus=getState(pot);
+	int potStatus=getState(pot);
 
 	if(potStatus == READY) {
 		strcpy(buf, C_NO_CUP);
@@ -275,6 +297,76 @@ void when(potStruct * pot, char * buf) {
 
 
 }
+
+void get(potStruct * pot, char * buf) {
+	int potStatus=getState(pot);
+	char message[1000];
+	int i;
+	char sizeStr[124];
+
+	if(potStatus == READY) {
+		strcpy(buf, C_NO_CUP);
+		return;
+	}
+
+	if(potStatus == BREWING) {
+		strcpy(buf, C_STILL_BREW);
+		return;
+	}
+
+	if(potStatus == CUP_COLD) {
+		strcpy(buf, C_CUP_COLD);
+		resetPot(pot);
+		return;
+	}
+
+	if(potStatus == CUP_WAITING_ADDS) {
+		if(pot->addsCalced == FALSE) {
+			for(i=0; i < 20; i++) {
+				if(pot->waitingAdditions[i] == ""){
+				       break;
+				}
+		 		calcAddVal(pot->waitingAdditions[i], pot->timePoured);		
+			}	
+			pot->addsCalced == TRUE;	
+		}
+		strcpy(message, CUP);
+		strcat(message, "Coffee with ");
+		for(i=0; i < 20; i++) {
+			if(pot->waitingAdditions[i] == "") {
+				strcat(message, ".");
+				break;
+			}
+			strcat(message, pot->waitingAdditions[i]);
+			strcat(message, ", ");
+		}
+		strcat(buf, C_OK);
+		sprintf(sizeStr,"Content-length:$d\r\n",strlen(message));
+		strcat(buf,sizeStr);
+		strcat(buf,"Content-type: beverage/coffee \r\n\r\n");
+		strcat(buf,message);
+		return;
+	}
+
+	if(potStatus == CUP_OVERFLOW) {
+		strcpy(buf, C_OVERFLOW);
+		resetPot(pot);
+		return;
+	}
+
+	if(potStatus == CUP_WAITING_NO_ADDS) {
+		strcpy(buf, C_NOT_POURING);
+		return;
+	}
+
+	if(potStatus == POURING) {
+		strcpy(buf, C_STILL_POURING);
+		return;
+	}
+
+
+}
+
 
 int main() {
 
