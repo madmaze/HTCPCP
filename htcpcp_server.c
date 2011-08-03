@@ -75,9 +75,23 @@ int splitVarVal(char* buf, char* var, char* val, char tdel){
 	}
 }
 
-void strip(char* str, int bufLen){
-	// do nothing
-	printf("stripping...\n");
+char* strip(char* str){
+	char *end;
+	
+	// Trim leading space
+	while(isspace(*str)) str++;
+	
+	if(*str == 0)  // All spaces?
+	return str;
+	
+	// Trim trailing space
+	end = str + strlen(str) - 1;
+	while(end > str && isspace(*end)) end--;
+	
+	// Write new null terminator
+	*(end+1) = 0;
+	
+	return str;
 }
 
 void CoffeeRequestHandler( char *buff, int *potNum, char *method, char additions[1024]) {
@@ -104,15 +118,13 @@ void CoffeeRequestHandler( char *buff, int *potNum, char *method, char additions
 	    type = splitVarVal(lineBuf,varBuf,valBuf,':');
 	    if (type == METHOD){
 	    	    printf("Its a method. %s=%s\n",varBuf,valBuf);
-	    	    strip(varBuf,255);
-	    	    strcpy(method,varBuf);
+	    	    strcpy(method,strip(varBuf));
 	    	    *potNum=atoi(strstr(valBuf,"-")+1);
 	    } else if ( type == VAR ) {
 	    	    memset(tmpBuf, 0, 255);
 	    	    printf("Its a var. %s=%s\n",varBuf,valBuf);
 	    	    if(strcmp(varBuf, "Accept-Additions")==0){
-	    	    	    strip(varBuf,255);
-	    	    	    strcpy(additions,valBuf);
+	    	    	    strcpy(additions,strip(valBuf));
 	    	    }
 	    }
 	    line = strtok( NULL, LineDel );
@@ -154,8 +166,8 @@ static void *thread(void *ptr) {
 	line = strtok( tmpAdd , del);
 	while( line != NULL ) {
 		 printf( "extracted req: |%s|\n", line );
-		 strip(line,255);
-		 strcpy(lineBuf,line);
+		 //strip(line,255);
+		 strcpy(lineBuf,strip(line));
 		 type = splitVarVal(lineBuf,varBuf,valBuf,';');
 		 sprintf((vars->pot[potNum]).waitingAdditions[addCnt],"%s;%s",varBuf,valBuf);
 		 //strcpy((vars->pot[potNum]).waitingAdditions[addCnt],"test");
