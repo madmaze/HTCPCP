@@ -38,7 +38,7 @@
 #define CUP "                                (    (   (      (\n                                  )    )      )    )\n                                (____(_____(_____(___\n                                l                   l\n                                l                   l____\n                                l                 ___   l\n                                l                l   l   l\n                                l                l   l   l\n                                l                 l__l   l\n                                l                    ____l\n                                \\__________________/\n" 
 
 
-char validAdditions[] = "CREAM;HALF-AND-HALF;WHOLE-MILK;PART-SKIM;SKIM;NON-DAIRY;VANILLA;ALMOND;RASPBERRY;CHOCOLATE;WHISKY;RUM;KAHLUA;AQUAVIT";
+char validAdditions[] = "SUGAR;CREAM;HALF-AND-HALF;WHOLE-MILK;PART-SKIM;SKIM;NON-DAIRY;VANILLA;ALMOND;RASPBERRY;CHOCOLATE;WHISKY;RUM;KAHLUA;AQUAVIT";
 
 typedef struct {
 	time_t finBrew;
