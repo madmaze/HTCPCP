@@ -25,6 +25,12 @@
 #define C_POT_BUSY "HTCPCP/1.0 510 Pot busy \r\n "
 #define C_INVALID_ADDS "HTCPCP/1.0 406 Not Acceptable \r\nAdditions-List:CREAM;HALF-AND-HALF;WHOLE-MILK;PART-SKIM;SKIM;NON-DAIRY;VANILLA;ALMOND;RASPBERRY;CHOCOLATE;WHISKY;RUM;KAHLUA;AQUAVIT\r\n" 
 #define C_BREW_SUC "HTCPCP/1.0 200 OK \r\nContent-length: 0\r\nContent-type: message/coffeepot \r\nETA: 30\r\n" 
+#define C_NO_CUP "HTCPCP/1.0 511 No cup \r\n "
+#define C_STILL_BREW "HTCPCP/1.0 505 Still Brewing \r\n "
+#define C_ALREADY_ADD "HTCPCP/1.0 506 Already Added \r\n "
+#define C_CUP_COLD "HTCPCP/1.0 419 Coffee gone cold \r\n" 
+#define C_OVERFLOW "HTCPCP/1.0 420 Overflow error \r\n"
+#define C_POURING "HTCPCP/1.0 200 OK \r\nContent-type: message/coffeepot \r\n\r\nSay WHEN \r\n"
 
 char validAdditions[] = "CREAM;HALF-AND-HALF;WHOLE-MILK;PART-SKIM;SKIM;NON-DAIRY;VANILLA;ALMOND;RASPBERRY;CHOCOLATE;WHISKY;RUM;KAHLUA;AQUAVIT";
 
@@ -175,9 +181,56 @@ void brew(potStruct * pot, char additions[][255], char * buf) {
 
 	pot->addUnitsPerSec=calcAddPerSec(pot->waitingAdditions);
 
+	pot->cupWaiting=TRUE;
+
+	return;
+
+}
+
+void put(potStruct * pot, char * buf) {
+	int potStatus=getState(pot);
+
+	if(potStatus == READY) {
+		strcpy(buf, C_NO_CUP);
+		return;
+	}
+
+	if(potStatus == BREWING) {
+		strcpy(buf, C_STILL_BREW);
+		return;
+	}
+
+	if(potStatus == CUP_COLD) {
+		strcpy(buf, C_CUP_COLD);
+		resetPot(pot);
+		return;
+	}
+
+	if(potStatus == CUP_WAITING_ADDS) {
+		strcpy(buf, C_ALREADY_ADD);
+		return;
+	}
+
+	if(potStatus == CUP_OVERFLOW) {
+		strcpy(buf, C_OVERFLOW);
+		resetPot(pot);
+		return;
+	}
+
+	if(potStatus == POURING || potStatus == CUP_WAITING_NO_ADDS) {
+		strcpy(buf, C_POURING);
+		if(potStatus == CUP_WAITING_NO_ADDS) {
+			pot->additionsAdded=FALSE;
+			pot->startPour=time(NULL);
+		}
+	}
+
+}
+
+void when(potStruct * pot, char * buf) {
+	in potStatus=getState(pot);
 
 
-	printf("Additions: %d \n", pot->addUnitsPerSec);
 
 }
 
