@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
     
     
     if(cmd==0){
-    	    sprintf(buffer,"BREW /pot-%d HTCPCP/1.0\r\nHost: 120.0.0.1\r\nContent-Type: message/coffeepot\r\nAccept-Additions: cream;1,whisky;3,rum;5\r\n",pot);
+    	    sprintf(buffer,"BREW /pot-%d HTCPCP/1.0\r\nContent-Type: message/coffeepot\r\nAccept-Additions: cream;1,whisky;3,rum;5\r\n",pot);
     	    printf("%s\n",buffer);
     } else if(cmd==1){
     	    sprintf(buffer,"PUT /pot-%d HTCPCP/1.0 \r\n",pot);
@@ -60,10 +60,7 @@ int main(int argc, char *argv[])
     } else if(cmd==3){
     	    sprintf(buffer,"GET /pot-%d HTCPCP/1.0 \r\n",pot);
     	    printf("%s\n",buffer);
-    } else if(cmd==4){
-    	    sprintf(buffer,"PROPFIND /pot-%d HTCPCP/1.0 \r\n",pot);
-    	    printf("%s\n",buffer);
-    }
+    } 
     
     //strcpy(buffer,"BREW /pot-4 HTCPCP/1.0\r\nHost: 120.0.0.1\r\nContent-Type: message/coffeepot\r\nAccept-Additions: cream;1,whisky;3,rum;5\r\n");
     //strcpy(buffer,"PUT /pot-4 HTCPCP/1.0 \r\n");

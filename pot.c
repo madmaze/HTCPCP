@@ -24,7 +24,7 @@
 //Return codes
 #define C_POT_BUSY "HTCPCP/1.0 510 Pot busy \r\n "
 #define C_INVALID_ADDS "HTCPCP/1.0 406 Not Acceptable \r\nAdditions-List:CREAM;HALF-AND-HALF;WHOLE-MILK;PART-SKIM;SKIM;NON-DAIRY;VANILLA;ALMOND;RASPBERRY;CHOCOLATE;WHISKY;RUM;KAHLUA;AQUAVIT\r\n" 
-#define C_BREW_SUC "HTCPCP/1.0 200 OK \r\nContent-length: 0\r\nContent-type: message/coffeepot \r\nETA: 30\r\n" 
+#define C_BREW_SUC "HTCPCP/1.0 200 OK \r\nContent-length: 0\r\nContent-type: message/coffeepot \r\nETA: 15\r\n" 
 #define C_NO_CUP "HTCPCP/1.0 511 No cup \r\n "
 #define C_STILL_BREW "HTCPCP/1.0 505 Still Brewing \r\n "
 #define C_ALREADY_ADD "HTCPCP/1.0 506 Already Added \r\n "

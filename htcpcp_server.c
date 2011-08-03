@@ -226,7 +226,8 @@ int main(int argc, char **argv, char **environ) {
 	for(i=0; i<POTCNT; i++){
 		resetPot(&Pots[i]);
 	}
-
+	
+	
 	if( argc != 2 ) {
 		fprintf(stderr, "USAGE: %s <port number>\n", argv[0]);
 		exit(-1);
@@ -275,6 +276,10 @@ int main(int argc, char **argv, char **environ) {
 	unsigned int clientaddrlength;
 	clientaddrlength = sizeof(client_addr);
 
+	
+	printf("Welcome to the potLogic CoffeeTr0n!\n");
+	printf("\tReady to brew.. there are %d Pots available\n",POTCNT);
+	
 	// while not killed accept sockets
   	while (1) {
   		curThread=0;
