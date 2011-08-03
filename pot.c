@@ -31,6 +31,8 @@
 #define C_CUP_COLD "HTCPCP/1.0 419 Coffee gone cold \r\n" 
 #define C_OVERFLOW "HTCPCP/1.0 420 Overflow error \r\n"
 #define C_POURING "HTCPCP/1.0 200 OK \r\nContent-type: message/coffeepot \r\n\r\nSay WHEN \r\n"
+#define C_OK "HTCPCP/1.0 200 OK \r\n "
+#define C_NOT_POURING "HTCPCP/1.0 421 Not pouring \r\n"
 
 char validAdditions[] = "CREAM;HALF-AND-HALF;WHOLE-MILK;PART-SKIM;SKIM;NON-DAIRY;VANILLA;ALMOND;RASPBERRY;CHOCOLATE;WHISKY;RUM;KAHLUA;AQUAVIT";
 
@@ -40,6 +42,7 @@ typedef struct {
 	int additionsAdded;
 	int addUnitsPerSec;
 	time_t startPour;
+	int timePoured;
 	char waitingAdditions[20][255];
 } potStruct;
 
@@ -82,6 +85,7 @@ void resetPot(potStruct * pot) {
 	pot->additionsAdded=FALSE;
 	pot->addUnitsPerSec=0;
 	pot->startPour=0;
+	pot->timePoured=0;
 
 	for(i=0;i < 20; i++) {
 		strcpy(pot->waitingAdditions[i], "");
@@ -230,6 +234,44 @@ void put(potStruct * pot, char * buf) {
 void when(potStruct * pot, char * buf) {
 	in potStatus=getState(pot);
 
+	if(potStatus == READY) {
+		strcpy(buf, C_NO_CUP);
+		return;
+	}
+
+	if(potStatus == BREWING) {
+		strcpy(buf, C_STILL_BREW);
+		return;
+	}
+
+	if(potStatus == CUP_COLD) {
+		strcpy(buf, C_CUP_COLD);
+		resetPot(pot);
+		return;
+	}
+
+	if(potStatus == CUP_WAITING_ADDS) {
+		strcpy(buf, C_ALREADY_ADD);
+		return;
+	}
+
+	if(potStatus == CUP_OVERFLOW) {
+		strcpy(buf, C_OVERFLOW);
+		resetPot(pot);
+		return;
+	}
+
+	if(potStatus == CUP_WAITING_NO_ADDS) {
+		strcpy(buf, C_NOT_POURING);
+		return;
+	}
+
+	if(potStatus == POURING) {
+		strcpy(buf, C_OK);
+		pot->additionsAdded=TRUE;
+		pot->timePoured=(int) difftime(time(NULL),pot->startPour);
+		return;
+	}
 
 
 }
@@ -244,7 +286,7 @@ int main() {
 
 	strcpy(twoTest[0], "Milk;1");
 	strcpy(twoTest[1], "Rum;3");
-	
+
 	resetPot(&pot);
 	result=calcAddPerSec(twoTest);
 	brew(&pot, twoTest, test);
