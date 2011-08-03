@@ -36,25 +36,32 @@ typedef struct {
 	int T_id;
 	int sock;
 	int busy;
-	potStruct *Arr;
+	potStruct *pot;
 } T_vars;
 
 T_vars threadVars[POTCNT+1];
 
-
+potStruct Pots[POTCNT];
 
 ////////////////////////////////////////////////////////////////////
 // splits requests, either <var>:<val> or <method> <pot>
 ////////////////////////////////////////////////////////////////////
-int splitVarVal(char* buf, char* var, char* val){
+int splitVarVal(char* buf, char* var, char* val, char tdel){
+	const char *del;
 	int varLen;
 	char* tmp;
-	if( strstr( buf, ":" )!=NULL ){
-		varLen = (strlen(buf)-strlen(strstr(buf, ":" ))); 	    
+	if(tdel==';')
+		del=";";
+	else
+		del=":";
+	
+	if( strstr( buf, del )!=NULL ){
+		varLen = (strlen(buf)-strlen(strstr(buf, del ))); 	    
 		strncpy(var,buf,varLen);
 		var[varLen]='\0';
-		strcpy(val,buf+varLen+1); // +1 for skipping ":"
 		//printf( "var: |%s|\n", var );
+		strcpy(val,buf+varLen+1); // +1 for skipping ":"
+		//printf( "val: |%s|\n", val );
 		return VAR;
 	} else {
 		varLen = (strlen(buf)-strlen(strstr(buf, " " ))); 	    
@@ -68,13 +75,20 @@ int splitVarVal(char* buf, char* var, char* val){
 	}
 }
 
-void CoffeeRequestHandler( char *buff, int newsock) {
+void strip(char* str, int bufLen){
+	// do nothing
+	printf("stripping...\n");
+}
+
+void CoffeeRequestHandler( char *buff, int *potNum, char *method, char additions[1024]) {
 	char *line = NULL;
 	char lineBuf[1024];
-	char varBuf[256];
-	char valBuf[256];
+	char varBuf[255];
+	char valBuf[255];
+	char tmpBuf[255];
 	char *var = NULL;
 	int varlen=0;
+	int cnt=0;
 	int type;
 	const char LineDel[] = "\r\n";
 	const char VarDel[] = ": ";
@@ -87,38 +101,74 @@ void CoffeeRequestHandler( char *buff, int newsock) {
 	while( line != NULL ) {
 	    printf( "extracted req: |%s|\n", line );
 	    strcpy(lineBuf,line);
-	    type = splitVarVal(lineBuf,varBuf,valBuf);
+	    type = splitVarVal(lineBuf,varBuf,valBuf,':');
 	    if (type == METHOD){
 	    	    printf("Its a method. %s=%s\n",varBuf,valBuf);
+	    	    strip(varBuf,255);
+	    	    strcpy(method,varBuf);
+	    	    *potNum=atoi(strstr(valBuf,"-")+1);
 	    } else if ( type == VAR ) {
+	    	    memset(tmpBuf, 0, 255);
 	    	    printf("Its a var. %s=%s\n",varBuf,valBuf);
+	    	    if(strcmp(varBuf, "Accept-Additions")==0){
+	    	    	    strip(varBuf,255);
+	    	    	    strcpy(additions,valBuf);
+	    	    }
 	    }
 	    line = strtok( NULL, LineDel );
 	}
-	
 }
 
 static void *thread(void *ptr) {
 	T_vars *vars;
 	vars = (T_vars *) ptr;
+	char method[255];
+	int potNum;
+	int type;
+	char *line=NULL;
+	char tmpAdd[1024];
+	char lineBuf[1024];
+	char varBuf[255];
+	char valBuf[255];
+	const char del[] = ",";
+	potNum=1;
+	
 	printf("Thread %d\n",(int)vars->T_id);
 	fflush(stdout);
 
 	char buff[1024];
-	//int read_so_far = 0;
-	int bytesRcvd;
-	//char ref[1024], rowRef[1024];
+	int addCnt=0;
+	int bytesRcvd,x;
 
 	memset(buff, 0, 1024);
+	memset(method, 0, 255);
 
 	// Read client request
 	if ((bytesRcvd = read((int)vars->sock, buff, RCVBUFSIZE - 1)) <= 0) {
 		perror("read");
 		exit(-1);
 	}
-	
-	CoffeeRequestHandler(buff, (int)vars->sock);
 
+	CoffeeRequestHandler(buff, &potNum, method, tmpAdd);
+	
+	line = strtok( tmpAdd , del);
+	while( line != NULL ) {
+		 printf( "extracted req: |%s|\n", line );
+		 strip(line,255);
+		 strcpy(lineBuf,line);
+		 type = splitVarVal(lineBuf,varBuf,valBuf,';');
+		 sprintf((vars->pot[potNum]).waitingAdditions[addCnt],"%s;%s",varBuf,valBuf);
+		 //strcpy((vars->pot[potNum]).waitingAdditions[addCnt],"test");
+		 line = strtok( NULL, del );
+		 addCnt++;
+	}
+	for(x=0;x<addCnt;x++){
+		printf("add %s\n",(vars->pot[potNum]).waitingAdditions[x]);
+	}
+	printf("METHOD is |%s|\n",method);
+	printf("POT num is |%d|\n",potNum);
+	
+	// LOGIC HERE
 	
 	// stop and close socket
 	shutdown((int)vars->sock, 1);
@@ -133,12 +183,18 @@ int main(int argc, char **argv, char **environ) {
   	char tmpBuf[RCVBUFSIZE];
 	int sockid, tmpsock;
 	int PORT;
+	int i;
 	int curThread;
 
 	// structs to hold addrs
   	struct sockaddr_in server_addr, client_addr; 
 
 	char coffee_request[512];	// coffe request
+	
+	for(i=0; i<POTCNT; i++){
+		resetPot(&Pots[i]);
+		Pots[i].cupWaiting=i*10;
+	}
 
 	if( argc != 2 ) {
 		fprintf(stderr, "USAGE: %s <port number>\n", argv[0]);
@@ -208,7 +264,7 @@ int main(int argc, char **argv, char **environ) {
   		} else {
 			
 			threadVars[curThread].sock = accept(sockid, (struct sockaddr *) &client_addr, &clientaddrlength);
-	
+			threadVars[curThread].pot = Pots;
 			if (threadVars[curThread].sock < 0) {
 				perror("accept");
 				exit(-1);
