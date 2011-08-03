@@ -29,15 +29,7 @@
 #define FALSE		0
 
 #define POTCNT 5
-/*
-struct T_vars
-    {
-    	int potNum;
-        int socket;
-        int reqType;
-        char opts[100][255];
-    } ;
-    */
+
 typedef struct {
 	pthread_t tid;
 	int T_id;
@@ -112,13 +104,17 @@ static void *thread(void *ptr) {
 	fflush(stdout);
 	shutdown((int)vars->sock, 1);
 	close((int)vars->sock);
+	sleep(5);
+	vars->busy = FALSE;
+	
 }
 
 ////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////
 int main(int argc, char **argv, char **environ) {
   	pid_t pid;
-	int sockid;
+  	char tmpBuf[RCVBUFSIZE];
+	int sockid, tmpsock;
 	int PORT;
 	int curThread;
 
@@ -172,31 +168,44 @@ int main(int argc, char **argv, char **environ) {
     		perror("listen");
 		exit(-1);
 	}
+	int client_len = sizeof(client_addr);		
+	int clientaddrlength;
+	clientaddrlength = sizeof(client_addr);
 
 
 	// while not killed accept sockets
-  	while (curThread<6) {
-
-		//int newsock;		
-		int client_len = sizeof(client_addr);
-		
-		
-		int clientaddrlength;
-		clientaddrlength = sizeof(client_addr);
-		threadVars[curThread].sock = accept(sockid, (struct server_addr *) &client_addr, &clientaddrlength);
-
-    		if (threadVars[curThread].sock < 0) {
-			perror("accept");
-			exit(-1);
+  	while (1) {
+  		curThread=0;
+  		while(threadVars[curThread].busy == TRUE && curThread < POTCNT){
+  			curThread++;
+  		}
+  		
+  		if(curThread == POTCNT){
+  			printf("TOO MANY CONNECTIONS\n");
+  			tmpsock = accept(sockid, (struct sockaddr *) &client_addr, &clientaddrlength);
+  			strcpy(tmpBuf,"HTCPCP/1.0 418 I'm a teapot\r\n");
+  			if (write(tmpsock, tmpBuf, strlen((char*)tmpBuf)) <= 0) {
+  				perror("write");
+  				exit(-1);
+			}	
+  		} else {
+			
+			threadVars[curThread].sock = accept(sockid, (struct sockaddr *) &client_addr, &clientaddrlength);
+	
+			if (threadVars[curThread].sock < 0) {
+				perror("accept");
+				exit(-1);
+			}
+			
+			threadVars[curThread].T_id = curThread;
+			threadVars[curThread].busy = TRUE;
+			if( pthread_create(&threadVars[curThread].tid, NULL, &thread, (void *) &threadVars[curThread]) !=0 ) {
+				perror("pthread_create");
+				exit(-2);
+			}
+			printf("Created thread %d\n",curThread);
 		}
-		
-		threadVars[curThread].T_id=curThread;
-		if( pthread_create(&threadVars[curThread].tid, NULL, &thread, (void *) &threadVars[curThread]) !=0 ) {
-			perror("pthread_create");
-			exit(-2);
-		}
-		printf("Created thread %d\n",curThread);
-		curThread++;
+		//curThread++;
 /*
 		if ( (pid = fork()) < 0) {
 			perror("Cannot fork");
